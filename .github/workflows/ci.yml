@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  js:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm pack --dry-run
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # Gradle runs on JDK 21 while the plugin compiles to Java 17.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build and test Android
+        working-directory: android
+        run: ./gradlew build test --no-daemon --stacktrace
+
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      XCODE_VERSION: '26.6'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+          xcodebuild -version
+      - name: Select an available iPhone simulator
+        shell: bash
+        run: |
+          set -o pipefail
+          xcrun simctl list devices available -j | python3 -c '
+          import json
+          import os
+          import re
+          import sys
+
+          runtimes = []
+          for runtime, devices in json.load(sys.stdin)["devices"].items():
+              match = re.fullmatch(r"com\.apple\.CoreSimulator\.SimRuntime\.iOS-(\d+(?:-\d+)*)", runtime)
+              if match:
+                  version = tuple(int(part) for part in match.group(1).split("-"))
+                  runtimes.append((version, devices))
+
+          for version, devices in sorted(runtimes, key=lambda item: item[0], reverse=True):
+              iphones = [device for device in devices if device.get("isAvailable") and device["name"].startswith("iPhone")]
+              if iphones:
+                  device = iphones[0]
+                  with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+                      env.write("UDID=" + device["udid"] + "\n")
+                  print("Selected " + device["name"] + " (iOS " + ".".join(map(str, version)) + ")")
+                  break
+          else:
+              sys.exit("No available iPhone simulator found")
+          '
+      - name: Test iOS
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild test -scheme TappCapacitorSdk -destination "id=$UDID"
+      - run: npm run verify:ios
+
+  capacitor-peer-range:
+    name: Capacitor ${{ matrix.capacitor }} compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        capacitor: [6, 7, 8]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save @capacitor/core@^${{ matrix.capacitor }}
+        env:
+          # Native development packages use v8; this matrix checks the JS core API.
+          npm_config_legacy_peer_deps: 'true'
+      - name: Show installed @capacitor/core
+        run: node -p "require('@capacitor/core/package.json').version"
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
