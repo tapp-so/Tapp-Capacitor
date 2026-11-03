@@ -148,7 +148,7 @@ class TappPlugin : Plugin() {
         }
     }
 
-    private fun instance(): Tapp = tapp ?: Tapp(context).also { tapp = it }
+    private fun instance(): Tapp = tapp ?: Tapp(context.applicationContext).also { tapp = it }
 
     private fun requireStarted(call: PluginCall): Tapp? {
         if (started) return tapp
@@ -163,9 +163,9 @@ class TappPlugin : Plugin() {
     }
 
     private fun requiredUrl(call: PluginCall): String? {
-        val url = string(call, "url")
-        if (!url.isNullOrBlank()) return url
-        call.reject("A nonempty URL is required.", "INVALID_URL")
+        val url = TappMapping.parsedUrl(string(call, "url"))
+        if (url != null) return url
+        call.reject("url must be a nonempty, valid URL.", "INVALID_URL")
         return null
     }
 
