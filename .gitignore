@@ -17,3 +17,6 @@ example-app/dist/
 example-app/android/
 example-app/ios/
 *.log
+.env*
+*.keystore
+*.jks

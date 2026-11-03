@@ -18,7 +18,6 @@ let package = Package(
             name: "TappCapacitorPlugin",
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "Tapp", package: "Tapp-iOS"),
                 .product(name: "TappNetworking", package: "Tapp-Networking-iOS")
             ],
