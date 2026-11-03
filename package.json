@@ -13,7 +13,7 @@
     "ios/Sources",
     "ios/Tests",
     "Package.swift",
-    "TappCapacitor.podspec"
+    "TappCapacitorSdk.podspec"
   ],
   "author": "Tapp.so",
   "license": "MIT",
@@ -37,7 +37,7 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
-    "verify:ios": "xcodebuild -scheme TappCapacitor -destination generic/platform=iOS",
+    "verify:ios": "xcodebuild -scheme TappCapacitorSdk -destination generic/platform=iOS",
     "verify": "npm run verify:ios && npm run verify:android && npm run build",
     "prepublishOnly": "npm run build"
   },
