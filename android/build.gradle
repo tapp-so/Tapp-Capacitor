@@ -5,11 +5,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Used for standalone builds (this repo / CI); host apps use their root build script's AGP.
-        // 8.13.0 matches Capacitor 8's @capacitor/android. Its AndroidX dependencies
-        // (e.g. androidx.core 1.17.0) require AGP 8.9.1+.
-        // Set rootProject.ext.androidGradlePluginVersion to override.
-        classpath "com.android.tools.build:gradle:${rootProject.ext.has('androidGradlePluginVersion') ? rootProject.ext.androidGradlePluginVersion : '8.13.0'}"
+        // Host apps use their root build script's AGP; keep this classpath at Capacitor 6's
+        // AGP 8.2.1 to avoid pulling a newer AGP onto a JDK 17 host.
+        // Standalone builds need AGP 8.9.1+ for Capacitor 8's AndroidX dependencies:
+        // CI passes -PandroidGradlePluginVersion=8.13.0 (or set rootProject.ext.androidGradlePluginVersion).
+        classpath "com.android.tools.build:gradle:${rootProject.ext.has('androidGradlePluginVersion') ? rootProject.ext.androidGradlePluginVersion : '8.2.1'}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
