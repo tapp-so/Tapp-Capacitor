@@ -19,6 +19,8 @@ let package = Package(
             name: "TappCapacitorPlugin",
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                // Capacitor's public headers import the Cordova module, so it must be linked.
+                .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "Tapp", package: "Tapp-iOS"),
                 .product(name: "TappNetworking", package: "Tapp-Networking-iOS")
             ],

@@ -26,6 +26,21 @@ Where to change them:
 - **iOS (Xcode / Swift Package Manager):** select the app target, then Build Settings → iOS Deployment Target → `15.0`
 - **Android:** `android/variables.gradle` — `minSdkVersion = 24`
 
+Capacitor 7 apps built with Xcode 27 or later also need a `post_install` hook in `ios/App/Podfile`. Capacitor 7's own pods target iOS 14.0, which Xcode 27 rejects, so the hook sets every pod target to 15.0. If the app already has a `post_install` block, merge the loop into it and keep `assertDeploymentTarget(installer)`:
+
+```ruby
+post_install do |installer|
+  assertDeploymentTarget(installer)
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+  end
+end
+```
+
+An app whose iOS deployment target (`platform :ios` in the Podfile) is still 14.0 fails at `pod install` by design, because this plugin requires iOS 15.0. Raise it to 15.0 first.
+
 ### Toolchain
 
 | App Capacitor version | Node.js (Capacitor CLI) | JDK (Android build) |

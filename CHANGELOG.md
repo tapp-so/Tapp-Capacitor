@@ -31,9 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - iOS unit tests are no longer shipped in the npm package. `Package.swift` declares the test target only when `ios/Tests/TappCapacitorPluginTests` exists.
 
+### Fixed
+
+- `Package.swift` links Capacitor's Cordova product again, which Capacitor's public headers require.
+
 ### Known limitations
 
 - Link handling is JavaScript-side only. The plugin does not intercept links natively; apps pass URLs to `shouldProcess` and `fetchLinkData` themselves.
 - The web platform is not supported.
-- The iOS bridge has not yet been compiled with Xcode.
+- The iOS bridge has been compiled with Xcode 27.2 for the iOS 27.2 simulator (Capacitor 8 with Swift Package Manager and Capacitor 7 with CocoaPods). Device tests are still pending.
 - Device-level end-to-end tests are pending: deferred links, Universal Links / App Links, and cold and warm start.
