@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#182d47" />
+    <title>Tapp Capacitor Example</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Tapp Capacitor Example</h1>
+        <p>Start the SDK, generate links, and inspect events on an iOS or Android device.</p>
+        <p id="status" role="status">Idle — enter credentials and press Start.</p>
+      </header>
+
+      <section aria-labelledby="setup-title">
+        <h2 id="setup-title">SDK setup</h2>
+        <p>
+          Credentials stay in memory for this session. They are passed to Tapp when you press Start.
+        </p>
+        <label for="auth-token">authToken</label>
+        <input id="auth-token" type="password" placeholder="YOUR_AUTH_TOKEN" autocomplete="off" />
+        <label for="tapp-token">tappToken</label>
+        <input id="tapp-token" type="password" placeholder="YOUR_TAPP_TOKEN" autocomplete="off" />
+        <label for="environment">Environment</label>
+        <select id="environment">
+          <option value="SANDBOX" selected>SANDBOX</option>
+          <option value="PRODUCTION">PRODUCTION</option>
+        </select>
+        <button id="start" type="button">Start</button>
+      </section>
+
+      <fieldset id="actions" disabled>
+        <legend>SDK actions</legend>
+        <section aria-labelledby="generate-title">
+          <h2 id="generate-title">Generate a link</h2>
+          <label for="influencer">Influencer</label>
+          <input id="influencer" placeholder="example_creator" />
+          <button id="generate" type="button">Generate URL</button>
+        </section>
+
+        <section aria-labelledby="event-title">
+          <h2 id="event-title">Send an event</h2>
+          <label for="event-action">Action</label>
+          <select id="event-action">
+            <option value="CUSTOM">CUSTOM</option>
+            <option value="TAPP_ADD_TO_WISHLIST">TAPP_ADD_TO_WISHLIST</option>
+            <option value="TAPP_PURCHASE">TAPP_PURCHASE</option>
+          </select>
+          <p>
+            Sample metadata: currency: "EUR", price: 10.34, count: 3, success: true. An invalid
+            nested value is also sent to demonstrate that the SDK drops it.
+          </p>
+          <button id="send-event" type="button">Send event</button>
+        </section>
+
+        <section aria-labelledby="links-title">
+          <h2 id="links-title">Resolve links</h2>
+          <label for="link-url">URL</label>
+          <input id="link-url" type="url" placeholder="https://your-tapp-domain.example/path" />
+          <div class="buttons">
+            <button id="should-process" type="button">Should process</button>
+            <button id="fetch-link" type="button">Fetch link data</button>
+            <button id="fetch-origin" type="button">Fetch origin link data</button>
+          </div>
+        </section>
+      </fieldset>
+
+      <section aria-labelledby="log-title">
+        <div class="log-heading">
+          <h2 id="log-title">Log</h2>
+          <button id="clear-log" type="button">Clear log</button>
+        </div>
+        <pre id="log" role="log" aria-live="polite" aria-relevant="additions" tabindex="0"></pre>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
