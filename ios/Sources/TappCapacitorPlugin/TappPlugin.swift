@@ -18,6 +18,7 @@ public class TappPlugin: CAPPlugin, CAPBridgedPlugin, TappDelegate {
 
     // Accessed only on the main queue, including concurrent JS start calls.
     private var started = false
+    private static let notStartedMessage = "Tapp has not been started. Call start() first."
 
     @objc public func start(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
@@ -35,23 +36,27 @@ public class TappPlugin: CAPPlugin, CAPBridgedPlugin, TappDelegate {
                 authToken: authToken, env: env == "PRODUCTION" ? .production : .sandbox,
                 tappToken: tappToken, affiliate: .tapp, bundleID: Bundle.main.bundleIdentifier
             )
-            self.started = true
             // Match RN's main-queue initialization; the SDK starts its own asynchronous work.
             Tapp.start(config: config, delegate: self)
+            self.started = true
             call.resolve()
         }
     }
 
     @objc public func url(_ call: CAPPluginCall) {
-        guard let influencer = call.getString("influencer"), !influencer.isEmpty else {
-            call.reject("influencer must be a nonempty string.", "INVALID_ARGUMENT")
-            return
-        }
-        let config = AffiliateURLConfiguration(
-            influencer: influencer, adgroup: call.getString("adGroup"),
-            creative: call.getString("creative"), data: TappMapping.stringData(call.getObject("data"))
-        )
         DispatchQueue.main.async {
+            guard self.started else {
+                call.reject(Self.notStartedMessage, "NOT_STARTED")
+                return
+            }
+            guard let influencer = call.getString("influencer"), !influencer.isEmpty else {
+                call.reject("influencer must be a nonempty string.", "INVALID_ARGUMENT")
+                return
+            }
+            let config = AffiliateURLConfiguration(
+                influencer: influencer, adgroup: call.getString("adGroup"),
+                creative: call.getString("creative"), data: TappMapping.stringData(call.getObject("data"))
+            )
             Tapp.url(config: config) { result in
                 DispatchQueue.main.async {
                     switch result {
@@ -66,18 +71,22 @@ public class TappPlugin: CAPPlugin, CAPBridgedPlugin, TappDelegate {
     }
 
     @objc public func handleTappEvent(_ call: CAPPluginCall) {
-        guard let name = TappMapping.eventName(
-            action: call.getValue("eventAction"), customValue: call.getString("customValue")
-        ) else {
-            call.reject("eventAction must be an integer from 0 through 40.", "INVALID_ARGUMENT")
-            return
-        }
-        // Use the Swift initializer: the Any-based initializer can coerce Bool to Int.
-        let event = TappEvent(
-            eventAction: EventActionMapper(eventActionName: name).eventAction,
-            metadata: TappMapping.metadata(call.getObject("metadata"))
-        )
         DispatchQueue.main.async {
+            guard self.started else {
+                call.reject(Self.notStartedMessage, "NOT_STARTED")
+                return
+            }
+            guard let name = TappMapping.eventName(
+                action: call.getValue("eventAction"), customValue: call.getString("customValue")
+            ) else {
+                call.reject("eventAction must be an integer from 0 through 40.", "INVALID_ARGUMENT")
+                return
+            }
+            // Use the Swift initializer: the Any-based initializer can coerce Bool to Int.
+            let event = TappEvent(
+                eventAction: EventActionMapper(eventActionName: name).eventAction,
+                metadata: TappMapping.metadata(call.getObject("metadata"))
+            )
             Tapp.handleTappEvent(event: event)
             call.resolve()
         }
@@ -94,11 +103,15 @@ public class TappPlugin: CAPPlugin, CAPBridgedPlugin, TappDelegate {
     }
 
     @objc public func fetchLinkData(_ call: CAPPluginCall) {
-        guard let url = TappMapping.parsedURL(call.getString("url")) else {
-            call.reject("url must be a nonempty, valid URL.", "INVALID_URL")
-            return
-        }
         DispatchQueue.main.async {
+            guard self.started else {
+                call.resolve(TappMapping.failure(message: Self.notStartedMessage))
+                return
+            }
+            guard let url = TappMapping.parsedURL(call.getString("url")) else {
+                call.reject("url must be a nonempty, valid URL.", "INVALID_URL")
+                return
+            }
             Tapp.fetchLinkData(for: url) { result in
                 self.resolveLinkData(call, result: result)
             }
@@ -107,6 +120,10 @@ public class TappPlugin: CAPPlugin, CAPBridgedPlugin, TappDelegate {
 
     @objc public func fetchOriginLinkData(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
+            guard self.started else {
+                call.resolve(TappMapping.failure(message: Self.notStartedMessage))
+                return
+            }
             Tapp.fetchOriginLinkData { result in
                 self.resolveLinkData(call, result: result)
             }
