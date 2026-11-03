@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-11-03
+## [0.1.0-alpha.0] - 2026-11-03
 
 ### Added
 
@@ -22,12 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Android `com.github.Tapp-so.Tapp-Android:Tapp-Native` `1.1.6`
 - Requirements: iOS 15.0, Android minSdk 24, Capacitor 6, 7, and 8.
   - Capacitor 6 and 7 apps must raise their iOS deployment target and Android `minSdkVersion` to the minimums above.
-- Plugin privacy manifest (`PrivacyInfo.xcprivacy`) covering the iOS bridge code.
+- Plugin privacy manifest (`PrivacyInfo.xcprivacy`) declaring the data types the bundled Tapp SDK sends (Device ID, Product Interaction, Other Data Types), none linked to the user or used for tracking.
 - Example app (`example-app/`) demonstrating the API, including JavaScript-side cold- and warm-start link handling and a JitPack sync hook.
-- Web stub: validates input and reports that Tapp is not supported on web.
+- Web stub: validates input, reports that Tapp is not supported on web, and rejects with error codes (`INVALID_ARGUMENT`, `INVALID_URL`, `UNIMPLEMENTED`).
 
 ### Known limitations
 
 - Link handling is JavaScript-side only. The plugin does not intercept links natively; apps pass URLs to `shouldProcess` and `fetchLinkData` themselves.
 - The web platform is not supported.
-- Device-level end-to-end testing is pending before 1.0.0.
+- The iOS bridge has not yet been compiled with Xcode.
+- Device-level end-to-end tests are pending: deferred links, Universal Links / App Links, and cold and warm start.
