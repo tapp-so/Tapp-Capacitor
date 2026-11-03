@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      capacitor:
+        patterns: ["@capacitor/*"]
+    ignore:
+      - dependency-name: "@capacitor/*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: gradle
+    directory: "/android"
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "com.github.Tapp-so.Tapp-Android:*"
+      - dependency-name: "com.android.tools.build:gradle"
