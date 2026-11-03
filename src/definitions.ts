@@ -29,9 +29,10 @@ export interface TappStartOptions {
 }
 
 /**
- * Resolved link data. Link-data fetches resolve with { error: true, message }
- * on SDK/backend failure or before start(). Invalid URLs reject with INVALID_URL
- * after start(). Optional fields are omitted when unavailable.
+ * Resolved link data. fetchLinkData rejects with INVALID_URL for an invalid URL
+ * (checked before anything else, so also before start()). Otherwise link-data calls
+ * resolve; failures and calls made before start() resolve with { error: true, message }.
+ * Optional fields are omitted when unavailable.
  * @since 0.1.0
  */
 export interface TappLinkData {
@@ -373,9 +374,11 @@ export interface TappEventOptions {
 export interface TappPlugin {
   /**
    * Initialize the SDK with nonempty tokens and env PRODUCTION or SANDBOX.
-   * Invalid input rejects with INVALID_ARGUMENT; Android also rejects whitespace-only
-   * tokens and may reject SDK initialization with START_ERROR. Subsequent native
-   * calls are no-ops. On web, validates input and resolves with a warning once.
+   * Invalid input rejects with INVALID_ARGUMENT. Web and Android also reject
+   * whitespace-only tokens; iOS rejects only empty strings. Android may reject SDK
+   * initialization with START_ERROR. After a successful native start, later calls
+   * resolve without validation. On web, every call validates input; the warning is
+   * logged once.
    * @since 0.1.0
    */
   start(options: TappStartOptions): Promise<void>;
@@ -395,25 +398,28 @@ export interface TappPlugin {
    */
   handleTappEvent(options: TappEventOptions): Promise<void>;
   /**
-   * Check whether Tapp can process a URL, including before start(). Missing, blank,
-   * or unparseable native URLs reject with INVALID_URL. On web, rejects missing or
-   * blank URLs with INVALID_URL and otherwise resolves with { value: false }.
+   * Check whether Tapp can process a URL, including before start(). The URL is trimmed
+   * and must be an absolute URL with a scheme; javascript:, data:, and file: are rejected
+   * (case-insensitive). Invalid URLs reject with INVALID_URL on all platforms. On iOS,
+   * resolves with the native result. On Android, resolves with { value: false } if the
+   * native SDK throws. On web, a valid URL resolves with { value: false }.
    * @since 0.1.0
    */
   shouldProcess(options: { url: string }): Promise<{ value: boolean }>;
   /**
-   * Resolve a URL. Before start(), resolves with { error: true, message } without
-   * validating the URL. After start(), missing, blank, or unparseable native URLs
-   * reject with INVALID_URL; SDK/backend failures resolve with { error: true, message }.
-   * On web, rejects missing or blank URLs with INVALID_URL and otherwise resolves
-   * with an unsupported-platform error payload.
+   * Resolve link data for a URL. The URL is trimmed and must be an absolute URL with a
+   * scheme; javascript:, data:, and file: are rejected (case-insensitive). Invalid URLs
+   * reject with INVALID_URL on all platforms, before start() is checked. Before start(),
+   * a valid URL resolves with { error: true, message }. After start(), SDK/backend
+   * failures resolve with { error: true, message }. On web, a valid URL resolves with
+   * { error: true, message: 'Tapp is not supported on web.' }.
    * @since 0.1.0
    */
   fetchLinkData(options: { url: string }): Promise<TappLinkData>;
   /**
-   * Resolve the original install link. SDK/backend failures and calls before start()
-   * resolve with { error: true, message }. On web, resolves with an
-   * unsupported-platform error payload.
+   * Resolve the original install link. Takes no URL, so no URL validation applies.
+   * SDK/backend failures and calls before start() resolve with { error: true, message }.
+   * On web, resolves with { error: true, message: 'Tapp is not supported on web.' }.
    * @since 0.1.0
    */
   fetchOriginLinkData(): Promise<TappLinkData>;

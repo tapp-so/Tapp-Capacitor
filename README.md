@@ -26,6 +26,18 @@ Where to change them:
 - **iOS (Xcode / Swift Package Manager):** select the app target, then Build Settings → iOS Deployment Target → `15.0`
 - **Android:** `android/variables.gradle` — `minSdkVersion = 24`
 
+### Toolchain
+
+| App Capacitor version | Node.js (Capacitor CLI) | JDK (Android build) |
+|---|---|---|
+| 6 | 18 or later | 17 |
+| 7 | 20 or later | 21 |
+| 8 | 22 or later | 21 |
+
+- The plugin compiles to Java/Kotlin target 17, so it builds in apps that use JDK 17 and in apps that use JDK 21.
+- **iOS:** Xcode with the iOS 15 SDK or later. Capacitor 8 needs Xcode 26 or later.
+- **Contributors building the plugin standalone** (`android/` with the repo's Capacitor 8 devDependencies) need JDK 21 and Node.js 22 or later.
+
 ## Installation
 
 ```sh
@@ -176,7 +188,7 @@ All methods are on `Tapp`. Types are exported from `tapp-capacitor-sdk`.
 
 Initializes the SDK. `authToken`, `tappToken`, and `env` (`'PRODUCTION'` or `'SANDBOX'`) are required. The first successful call initializes the SDK; later calls resolve without doing anything.
 
-Invalid input rejects with `INVALID_ARGUMENT`. Android also rejects whitespace-only tokens, and may reject with `START_ERROR` if the native SDK fails to initialize. On web, input is validated and a warning is logged once.
+Invalid input rejects with `INVALID_ARGUMENT`. Web and Android also reject whitespace-only tokens; iOS rejects only empty strings. Android may reject with `START_ERROR` if the native SDK fails to initialize. On web, every call validates input and a warning is logged once.
 
 ### `url(options: TappUrlOptions): Promise<{ url: string }>`
 
@@ -201,15 +213,17 @@ Rejects with `NOT_STARTED` before `start()`, and with `INVALID_ARGUMENT` unless 
 
 ### `shouldProcess(options: { url: string }): Promise<{ value: boolean }>`
 
-Returns whether Tapp should process a URL. It works before `start()`. This method has no `{ error: true }` payload: a missing, blank, or unparseable URL rejects with `INVALID_URL` on iOS and Android. On web, invalid input also rejects with `INVALID_URL`; otherwise it resolves `{ value: false }`.
+**URL rule (`shouldProcess` and `fetchLinkData`, all platforms).** The URL is trimmed. It must be non-empty and an absolute URL with a scheme. `javascript:`, `data:`, and `file:` are rejected (case-insensitive). `http`, `https`, and custom app schemes are allowed. Anything else rejects with `INVALID_URL`. This check runs before the started check, so an invalid URL rejects even before `start()`.
+
+Returns whether Tapp should process a URL. It works before `start()`. Invalid URLs reject with `INVALID_URL` (see the URL rule). This method has no `{ error: true }` payload. On iOS, it resolves with the native result. On Android, if the native SDK throws, it resolves `{ value: false }`. On web, a valid URL resolves `{ value: false }`.
 
 ### `fetchLinkData(options: { url: string }): Promise<TappLinkData>`
 
-Resolves link data for a URL. Before `start()`, it resolves with `{ error: true, message }` without validating the URL. After `start()`, a missing, blank, or unparseable URL rejects with `INVALID_URL`. SDK and backend failures resolve with `{ error: true, message }`. On web, invalid input rejects with `INVALID_URL`; otherwise it resolves with an unsupported-platform error payload.
+Resolves link data for a URL. An invalid URL (see the URL rule) rejects with `INVALID_URL`, including before `start()`. Otherwise, a call made before `start()` resolves with `{ error: true, message }`. After `start()`, SDK and backend failures also resolve with `{ error: true, message }`, and a successful lookup resolves with the link data and `error: false`. On web, a valid URL resolves with `{ error: true, message: 'Tapp is not supported on web.' }`.
 
 ### `fetchOriginLinkData(): Promise<TappLinkData>`
 
-Resolves the original install link data. SDK and backend failures, and calls made before `start()`, resolve with `{ error: true, message }`.
+Resolves the original install link data. It takes no URL, so the URL rule does not apply. SDK and backend failures, and calls made before `start()`, resolve with `{ error: true, message }`. On web, it resolves with `{ error: true, message: 'Tapp is not supported on web.' }`.
 
 ### `addListener('deferredLinkReceived' | 'didFailResolvingURL', fn)`
 
@@ -241,7 +255,7 @@ Errors reject with a `code`:
 | Code | Raised by | Meaning |
 |---|---|---|
 | `INVALID_ARGUMENT` | `start`, `url`, `handleTappEvent` | Missing or invalid credentials, `env`, `influencer`, or `eventAction` |
-| `INVALID_URL` | `shouldProcess`, `fetchLinkData` | URL is missing, blank, or not a valid URL (after `start()` for `fetchLinkData` on native) |
+| `INVALID_URL` | `shouldProcess`, `fetchLinkData` | URL fails the URL rule: missing, blank, not absolute, or `javascript:`, `data:`, or `file:`. Checked before `start()`. |
 | `URL_ERROR` | `url` | Link generation failed |
 | `NOT_STARTED` | `url`, `handleTappEvent` (iOS and Android) | `start()` has not completed |
 | `START_ERROR` | `start` (Android) | The native SDK failed to initialize |
@@ -305,9 +319,9 @@ Values match the native SDKs.
 ### Platform differences
 
 - **iOS:** link data has no `deepLink` field.
-- **iOS and Android:** calls made before `start()` are guarded. `url` and `handleTappEvent` reject with `NOT_STARTED`. `fetchLinkData` and `fetchOriginLinkData` resolve `{ error: true, message }`. `shouldProcess` works before `start()`.
+- **iOS and Android:** calls made before `start()` are guarded. `url` and `handleTappEvent` reject with `NOT_STARTED`. `fetchLinkData` and `fetchOriginLinkData` resolve `{ error: true, message }` (`fetchLinkData` still rejects an invalid URL with `INVALID_URL` first). `shouldProcess` works before `start()`.
 - **Android:** `fetchOriginLinkData` calls the native `fetchOriginalLinkData`.
-- **Web:** not supported. `start` validates its input and logs a warning once. `url` and `handleTappEvent` reject with `UNIMPLEMENTED`. `shouldProcess` and `fetchLinkData` reject with `INVALID_URL` for a missing or blank URL, and otherwise resolve (`{ value: false }` for `shouldProcess`; `fetchLinkData` resolves with `{ error: true, message: 'Tapp is not supported on web.' }`). `fetchOriginLinkData` resolves with the same unsupported-platform payload.
+- **Web:** not supported. `start` validates its input and logs a warning once. `url` and `handleTappEvent` reject with `UNIMPLEMENTED`. `shouldProcess` and `fetchLinkData` apply the URL rule and reject with `INVALID_URL`; otherwise `shouldProcess` resolves `{ value: false }`, and `fetchLinkData` resolves with `{ error: true, message: 'Tapp is not supported on web.' }`. `fetchOriginLinkData` resolves with the same unsupported-platform payload.
 
 ## Universal Links and App Links
 

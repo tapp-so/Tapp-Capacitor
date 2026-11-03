@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugin privacy manifest (`PrivacyInfo.xcprivacy`) declaring the data types the bundled Tapp SDK sends (Device ID, Product Interaction, Other Data Types), none linked to the user or used for tracking.
 - Example app (`example-app/`) demonstrating the API, including JavaScript-side cold- and warm-start link handling and a JitPack sync hook.
 - Web stub: validates input, reports that Tapp is not supported on web, and rejects with error codes (`INVALID_ARGUMENT`, `INVALID_URL`, `UNIMPLEMENTED`).
+- Shared URL validation for `shouldProcess` and `fetchLinkData` on web, iOS, and Android: the URL is trimmed and must be an absolute URL with a scheme. `javascript:`, `data:`, and `file:` are rejected (case-insensitive) with `INVALID_URL`. The check runs before the started check.
+
+### Changed
+
+- iOS unit tests are no longer shipped in the npm package. `Package.swift` declares the test target only when `ios/Tests/TappCapacitorPluginTests` exists.
 
 ### Known limitations
 
