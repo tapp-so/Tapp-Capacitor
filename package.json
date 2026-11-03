@@ -12,7 +12,6 @@
     "android/proguard-rules.pro",
     "dist/",
     "ios/Sources",
-    "ios/Tests",
     "Package.swift",
     "TappCapacitorSdk.podspec"
   ],

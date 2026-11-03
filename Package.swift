@@ -1,6 +1,7 @@
 // swift-tools-version: 5.9
 // The package and product name must stay TappCapacitorSdk because the Capacitor CLI derives it from the npm name.
 import PackageDescription
+import Foundation
 
 let package = Package(
     name: "TappCapacitorSdk",
@@ -23,11 +24,14 @@ let package = Package(
             ],
             path: "ios/Sources/TappCapacitorPlugin",
             resources: [.copy("PrivacyInfo.xcprivacy")]
-        ),
+        )
+    ] + (FileManager.default.fileExists(
+        atPath: Context.packageDirectory + "/ios/Tests/TappCapacitorPluginTests"
+    ) ? [
         .testTarget(
             name: "TappCapacitorPluginTests",
             dependencies: ["TappCapacitorPlugin"],
             path: "ios/Tests/TappCapacitorPluginTests"
         )
-    ]
+    ] : [])
 )
