@@ -62,15 +62,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Capacitor 6 hosts use AGP 8.2.1, Gradle 8.2.1 and JDK 17;
-    # Capacitor 7 hosts use AGP 8.7.2 and JDK 21.
+    # Capacitor 7 hosts use AGP 8.7.2 and JDK 21;
+    # Capacitor 8 hosts use AGP 8.13.0 and JDK 21.
     strategy:
       fail-fast: false
       matrix:
         include:
           - capacitor: 6
             java: '17'
+            agp: '8.2.1'
           - capacitor: 7
             java: '21'
+            agp: '8.7.2'
+          - capacitor: 8
+            java: '21'
+            agp: '8.13.0'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -88,6 +94,7 @@ jobs:
       - name: Build Android host app
         env:
           CAPACITOR_MAJOR: ${{ matrix.capacitor }}
+          EXPECTED_HOST_AGP: ${{ matrix.agp }}
         run: bash .github/ci/build-capacitor-host.sh "$CAPACITOR_MAJOR"
 
   ios:
