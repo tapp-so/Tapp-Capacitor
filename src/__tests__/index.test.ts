@@ -1,6 +1,6 @@
 import { registerPlugin } from '@capacitor/core';
 
-import { Tapp, normalizeLinkData, sanitizeMetadata } from '../index';
+import { Tapp } from '../index';
 import { TappWeb } from '../web';
 
 jest.mock('@capacitor/core', () => ({
@@ -19,10 +19,5 @@ describe('plugin registration', () => {
 
   it('loads the web implementation lazily', async () => {
     expect(await registration[1]?.web?.()).toBeInstanceOf(TappWeb);
-  });
-
-  it('exports the pure normalization helpers', () => {
-    expect(sanitizeMetadata({ keep: true, drop: [] })).toEqual({ keep: true });
-    expect(normalizeLinkData({ error: false })).toEqual({ error: false });
   });
 });

@@ -7,5 +7,4 @@ const Tapp = registerPlugin<TappPlugin>('Tapp', {
 });
 
 export * from './definitions';
-export { normalizeLinkData, sanitizeMetadata } from './utils';
 export { Tapp };

@@ -1,4 +1,4 @@
-import { WebPlugin } from '@capacitor/core';
+import { CapacitorException, WebPlugin, type ExceptionCode } from '@capacitor/core';
 
 import type {
   TappEventOptions,
@@ -29,7 +29,10 @@ export class TappWeb extends WebPlugin implements TappPlugin {
       !isNonemptyString(options?.tappToken) ||
       (options?.env !== 'PRODUCTION' && options?.env !== 'SANDBOX')
     ) {
-      throw new Error('authToken, tappToken, and a PRODUCTION or SANDBOX env are required.');
+      throw new CapacitorException(
+        'authToken, tappToken, and a PRODUCTION or SANDBOX env are required.',
+        'INVALID_ARGUMENT' as ExceptionCode,
+      );
     }
     if (!this.warned) {
       this.warned = true;
@@ -80,7 +83,8 @@ export class TappWeb extends WebPlugin implements TappPlugin {
   }
 
   private validateUrl(options: { url: string }): void {
-    if (!isNonemptyString(options?.url)) throw new Error('A nonempty url is required.');
+    if (!isNonemptyString(options?.url))
+      throw new CapacitorException('A nonempty url is required.', 'INVALID_URL' as ExceptionCode);
   }
 
   private unsupportedLinkData(): TappLinkData {

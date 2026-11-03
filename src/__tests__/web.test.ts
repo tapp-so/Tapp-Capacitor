@@ -38,7 +38,10 @@ describe('TappWeb', () => {
     { ...options, env: 'OTHER' },
   ])('rejects invalid start input %p without warning', async (invalid) => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    await expect(web.start(invalid as TappStartOptions)).rejects.toThrow();
+    await expect(web.start(invalid as TappStartOptions)).rejects.toMatchObject({
+      code: 'INVALID_ARGUMENT',
+      message: 'authToken, tappToken, and a PRODUCTION or SANDBOX env are required.',
+    });
     expect(warn).not.toHaveBeenCalled();
   });
 
@@ -46,7 +49,10 @@ describe('TappWeb', () => {
     '%s rejects missing, empty, and non-string URLs',
     async (method) => {
       for (const invalid of [undefined, null, {}, { url: '' }, { url: ' ' }, { url: 123 }]) {
-        await expect(web[method](invalid as { url: string })).rejects.toThrow('nonempty url');
+        await expect(web[method](invalid as { url: string })).rejects.toMatchObject({
+          code: 'INVALID_URL',
+          message: 'A nonempty url is required.',
+        });
       }
     },
   );
