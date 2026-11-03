@@ -107,6 +107,9 @@ final class TappMappingTests: XCTestCase {
     }
 
     func testURLValidationRejectsMalformedAndDisallowedURLs() {
+        // "https://[invalid" and "http://exa mple.com" are intentionally not asserted here:
+        // URL(string:) depends on Foundation version (iOS 17+ percent-encodes invalid characters;
+        // older iOS and swift-corelibs-foundation return nil). Android and web tests assert both.
         let invalid: [String?] = [
             nil, "", "   ", " \n\t", "no-scheme/path",
             "javascript:alert(1)", "JavaScript:alert(1)",

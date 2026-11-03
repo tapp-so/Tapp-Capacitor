@@ -8,6 +8,8 @@ describe('validateTappUrl', () => {
     '   ',
     ' \n\t',
     'no-scheme/path',
+    'https://[invalid',
+    'http://exa mple.com',
     'javascript:alert(1)',
     'JavaScript:alert(1)',
     'data:text/plain,x',

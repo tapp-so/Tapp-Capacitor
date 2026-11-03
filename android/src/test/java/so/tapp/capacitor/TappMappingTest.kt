@@ -43,6 +43,7 @@ class TappMappingTest {
     fun rejectsMalformedAndDisallowedUrls() {
         listOf(
             null, "", "   ", " \n\t", "no-scheme/path",
+            "https://[invalid", "http://exa mple.com",
             "javascript:alert(1)", "JavaScript:alert(1)",
             "data:text/plain,x", "DATA:text/plain,x",
             "file:///etc/hosts", "FILE:///etc/hosts"

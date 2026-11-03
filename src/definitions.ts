@@ -398,18 +398,22 @@ export interface TappPlugin {
    */
   handleTappEvent(options: TappEventOptions): Promise<void>;
   /**
-   * Check whether Tapp can process a URL, including before start(). The URL is trimmed
-   * and must be an absolute URL with a scheme; javascript:, data:, and file: are rejected
-   * (case-insensitive). Invalid URLs reject with INVALID_URL on all platforms. On iOS,
+   * Check whether Tapp can process a URL, including before start(). After trimming, the
+   * blank, scheme-present, and blocked-scheme checks (javascript:, data:, file:,
+   * case-insensitive) are the same on web, iOS, and Android. Platform URL parsers may
+   * differ on edge cases such as 'https://x/a b', 'https://', and 'tapp:'.
+   * Invalid URLs reject with INVALID_URL. On iOS,
    * resolves with the native result. On Android, resolves with { value: false } if the
    * native SDK throws. On web, a valid URL resolves with { value: false }.
    * @since 0.1.0
    */
   shouldProcess(options: { url: string }): Promise<{ value: boolean }>;
   /**
-   * Resolve link data for a URL. The URL is trimmed and must be an absolute URL with a
-   * scheme; javascript:, data:, and file: are rejected (case-insensitive). Invalid URLs
-   * reject with INVALID_URL on all platforms, before start() is checked. Before start(),
+   * Resolve link data for a URL. After trimming, the blank, scheme-present, and
+   * blocked-scheme checks (javascript:, data:, file:, case-insensitive) are the same on
+   * web, iOS, and Android. Platform URL parsers may differ on edge cases such as
+   * 'https://x/a b', 'https://', and 'tapp:'. Invalid URLs reject with INVALID_URL
+   * before start() is checked. Before start(),
    * a valid URL resolves with { error: true, message }. After start(), SDK/backend
    * failures resolve with { error: true, message }. On web, a valid URL resolves with
    * { error: true, message: 'Tapp is not supported on web.' }.

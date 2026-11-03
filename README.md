@@ -213,7 +213,7 @@ Rejects with `NOT_STARTED` before `start()`, and with `INVALID_ARGUMENT` unless 
 
 ### `shouldProcess(options: { url: string }): Promise<{ value: boolean }>`
 
-**URL rule (`shouldProcess` and `fetchLinkData`, all platforms).** The URL is trimmed. It must be non-empty and an absolute URL with a scheme. `javascript:`, `data:`, and `file:` are rejected (case-insensitive). `http`, `https`, and custom app schemes are allowed. Anything else rejects with `INVALID_URL`. This check runs before the started check, so an invalid URL rejects even before `start()`.
+**URL rule (`shouldProcess` and `fetchLinkData`).** After trimming, the blank check, scheme-present check, and blocked-scheme check (`javascript:`, `data:`, `file:`, case-insensitive) are the same on web, iOS, and Android. Each platform's URL parser may still differ on edge cases such as `https://x/a b`, `https://`, and `tapp:`. Invalid URLs reject with `INVALID_URL` before the started check, including before `start()`.
 
 Returns whether Tapp should process a URL. It works before `start()`. Invalid URLs reject with `INVALID_URL` (see the URL rule). This method has no `{ error: true }` payload. On iOS, it resolves with the native result. On Android, if the native SDK throws, it resolves `{ value: false }`. On web, a valid URL resolves `{ value: false }`.
 
