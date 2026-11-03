@@ -54,10 +54,14 @@ enum TappMapping {
     }
 
     static func parsedURL(_ string: String?) -> URL? {
-        guard let string, !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        guard let trimmed = string?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !trimmed.isEmpty,
+              let url = URL(string: trimmed),
+              let scheme = url.scheme, !scheme.isEmpty,
+              !["javascript", "data", "file"].contains(scheme.lowercased()) else {
             return nil
         }
-        return URL(string: string)
+        return url
     }
 
     static func linkData(

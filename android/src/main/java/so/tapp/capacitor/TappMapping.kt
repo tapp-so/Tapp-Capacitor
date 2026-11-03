@@ -58,10 +58,14 @@ internal object TappMapping {
     }
 
     fun parsedUrl(value: String?): String? {
-        if (value.isNullOrBlank()) return null
+        val trimmed = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return try {
-            URI(value)
-            value
+            val uri = URI(trimmed)
+            val scheme = uri.scheme
+            if (!uri.isAbsolute || scheme.isNullOrEmpty() ||
+                listOf("javascript", "data", "file").any { it.equals(scheme, ignoreCase = true) }
+            ) return null
+            trimmed
         } catch (_: URISyntaxException) {
             null
         }

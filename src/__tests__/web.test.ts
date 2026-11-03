@@ -46,16 +46,48 @@ describe('TappWeb', () => {
   });
 
   it.each(['shouldProcess', 'fetchLinkData'] as const)(
-    '%s rejects missing, empty, and non-string URLs',
+    '%s rejects invalid URLs',
     async (method) => {
-      for (const invalid of [undefined, null, {}, { url: '' }, { url: ' ' }, { url: 123 }]) {
-        await expect(web[method](invalid as { url: string })).rejects.toMatchObject({
+      for (const url of [
+        undefined,
+        null,
+        '',
+        '   ',
+        ' \n\t',
+        'no-scheme/path',
+        'javascript:alert(1)',
+        'JavaScript:alert(1)',
+        'data:text/plain,x',
+        'DATA:text/plain,x',
+        'file:///etc/hosts',
+        'FILE:///etc/hosts',
+      ]) {
+        await expect(web[method]({ url } as { url: string })).rejects.toMatchObject({
           code: 'INVALID_URL',
-          message: 'A nonempty url is required.',
+          message: 'url must be a nonempty, valid URL.',
+        });
+      }
+      for (const options of [undefined, null, {}, { url: 123 }]) {
+        await expect(web[method](options as unknown as { url: string })).rejects.toMatchObject({
+          code: 'INVALID_URL',
+          message: 'url must be a nonempty, valid URL.',
         });
       }
     },
   );
+
+  it.each([
+    'https://example.com/path',
+    'http://example.com',
+    'myapp://x',
+    '  https://example.com/a  ',
+  ])('accepts %p in both URL methods', async (url) => {
+    await expect(web.shouldProcess({ url })).resolves.toEqual({ value: false });
+    await expect(web.fetchLinkData({ url })).resolves.toEqual({
+      error: true,
+      message: 'Tapp is not supported on web.',
+    });
+  });
 
   it('resolves shouldProcess to false for a valid input', async () => {
     await expect(web.shouldProcess({ url: 'https://example.com/link' })).resolves.toEqual({

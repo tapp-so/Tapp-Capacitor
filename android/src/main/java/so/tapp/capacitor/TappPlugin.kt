@@ -125,8 +125,8 @@ class TappPlugin : Plugin() {
 
     @PluginMethod
     fun fetchLinkData(call: PluginCall) {
-        val sdk = startedForLinkData(call) ?: return
         val url = requiredUrl(call) ?: return
+        val sdk = startedForLinkData(call) ?: return
         fetch(call) { sdk.fetchLinkData(url) }
     }
 

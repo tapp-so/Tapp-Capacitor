@@ -103,13 +103,13 @@ public class TappPlugin: CAPPlugin, CAPBridgedPlugin, TappDelegate {
     }
 
     @objc public func fetchLinkData(_ call: CAPPluginCall) {
+        guard let url = TappMapping.parsedURL(call.getString("url")) else {
+            call.reject("url must be a nonempty, valid URL.", "INVALID_URL")
+            return
+        }
         DispatchQueue.main.async {
             guard self.started else {
                 call.resolve(TappMapping.failure(message: Self.notStartedMessage))
-                return
-            }
-            guard let url = TappMapping.parsedURL(call.getString("url")) else {
-                call.reject("url must be a nonempty, valid URL.", "INVALID_URL")
                 return
             }
             Tapp.fetchLinkData(for: url) { result in

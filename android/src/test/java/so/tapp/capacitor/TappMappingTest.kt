@@ -40,12 +40,26 @@ class TappMappingTest {
     }
 
     @Test
-    fun parsesUrlsWithoutChangingValidInput() {
-        listOf(null, "", "  ", "https://[invalid", "http://exa mple.com").forEach {
-            assertNull(TappMapping.parsedUrl(it))
+    fun rejectsMalformedAndDisallowedUrls() {
+        listOf(
+            null, "", "   ", " \n\t", "no-scheme/path",
+            "javascript:alert(1)", "JavaScript:alert(1)",
+            "data:text/plain,x", "DATA:text/plain,x",
+            "file:///etc/hosts", "FILE:///etc/hosts"
+        ).forEach {
+            assertNull("Unexpected valid URL: $it", TappMapping.parsedUrl(it))
         }
-        listOf("https://example.com/path", "tapp://link").forEach {
-            assertEquals(it, TappMapping.parsedUrl(it))
+    }
+
+    @Test
+    fun returnsTrimmedUrls() {
+        listOf(
+            "https://example.com/path" to "https://example.com/path",
+            "http://example.com" to "http://example.com",
+            "myapp://x" to "myapp://x",
+            "  https://example.com/a  " to "https://example.com/a"
+        ).forEach { (value, expected) ->
+            assertEquals(expected, TappMapping.parsedUrl(value))
         }
     }
 

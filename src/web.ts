@@ -7,6 +7,7 @@ import type {
   TappStartOptions,
   TappUrlOptions,
 } from './definitions';
+import { validateTappUrl } from './url';
 
 function isNonemptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
@@ -83,8 +84,11 @@ export class TappWeb extends WebPlugin implements TappPlugin {
   }
 
   private validateUrl(options: { url: string }): void {
-    if (!isNonemptyString(options?.url))
-      throw new CapacitorException('A nonempty url is required.', 'INVALID_URL' as ExceptionCode);
+    if (validateTappUrl(options?.url) === null)
+      throw new CapacitorException(
+        'url must be a nonempty, valid URL.',
+        'INVALID_URL' as ExceptionCode,
+      );
   }
 
   private unsupportedLinkData(): TappLinkData {

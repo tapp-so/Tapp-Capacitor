@@ -106,11 +106,27 @@ final class TappMappingTests: XCTestCase {
         XCTAssertTrue(JSONSerialization.isValidJSONObject(result))
     }
 
-    func testURLValidation() {
-        XCTAssertNil(TappMapping.parsedURL(nil))
-        XCTAssertNil(TappMapping.parsedURL(""))
-        XCTAssertNil(TappMapping.parsedURL(" \n\t"))
-        XCTAssertEqual(TappMapping.parsedURL("https://example.com/path")?.absoluteString, "https://example.com/path")
-        XCTAssertEqual(TappMapping.parsedURL("tapp://link")?.scheme, "tapp")
+    func testURLValidationRejectsMalformedAndDisallowedURLs() {
+        let invalid: [String?] = [
+            nil, "", "   ", " \n\t", "no-scheme/path",
+            "javascript:alert(1)", "JavaScript:alert(1)",
+            "data:text/plain,x", "DATA:text/plain,x",
+            "file:///etc/hosts", "FILE:///etc/hosts"
+        ]
+        for value in invalid {
+            XCTAssertNil(TappMapping.parsedURL(value), "Unexpected valid URL: \(String(describing: value))")
+        }
+    }
+
+    func testURLValidationReturnsTrimmedURLs() {
+        let valid = [
+            ("https://example.com/path", "https://example.com/path"),
+            ("http://example.com", "http://example.com"),
+            ("myapp://x", "myapp://x"),
+            ("  https://example.com/a  ", "https://example.com/a")
+        ]
+        for (value, expected) in valid {
+            XCTAssertEqual(TappMapping.parsedURL(value)?.absoluteString, expected)
+        }
     }
 }
