@@ -49,6 +49,17 @@ async function handleIncomingUrl(url: string): Promise<void> {
   }
 }
 
+// During startup the launch URL may arrive via both appUrlOpen and getLaunchUrl
+// on Android cold start; both go through this helper so order doesn't matter.
+let bootstrapping = true;
+const startupUrls = new Set<string>();
+
+async function handleStartupUrl(url: string): Promise<void> {
+  if (startupUrls.has(url)) return;
+  startupUrls.add(url);
+  await handleIncomingUrl(url);
+}
+
 // Set before the first await: rapid taps cannot initialize the SDK twice.
 // Once initialization succeeds, later bootstrap errors must not allow a restart.
 let starting = false;
@@ -85,11 +96,17 @@ async function start(): Promise<void> {
     if (Capacitor.isNativePlatform()) {
       // Register warm-start handling before reading the launch URL so events
       // arriving during the launch lookup also have a listener.
-      await App.addListener('appUrlOpen', (e) => {
-        void handleIncomingUrl(e.url);
-      });
-      const launch = await App.getLaunchUrl();
-      if (launch?.url) await handleIncomingUrl(launch.url);
+      try {
+        await App.addListener('appUrlOpen', (e) => {
+          void (bootstrapping ? handleStartupUrl(e.url) : handleIncomingUrl(e.url));
+        });
+        // Warm-start URLs opened before Start is tapped have no listener and are lost; only a cold-launch URL is recovered via getLaunchUrl.
+        const launch = await App.getLaunchUrl();
+        if (launch?.url) await handleStartupUrl(launch.url);
+      } finally {
+        bootstrapping = false;
+        startupUrls.clear();
+      }
     } else {
       log('Browser preview: native SDK features require iOS or Android.');
     }
