@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Example app sets `loggingBehavior` to `'production'`, and the README logging note is strengthened.
+- Example app handles the Android cold-start launch URL only once.
+
 ## [0.1.0-alpha.0] - 2026-11-03
 
 ### Added

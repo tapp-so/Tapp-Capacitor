@@ -49,6 +49,16 @@ async function handleIncomingUrl(url: string): Promise<void> {
   }
 }
 
+// On Android cold start the launch URL is delivered twice: via the appUrlOpen
+// listener and via App.getLaunchUrl(). Track handled URLs so it is processed once.
+const handledLaunchUrls = new Set<string>();
+
+async function handleLaunchUrlOnce(url: string): Promise<void> {
+  if (handledLaunchUrls.has(url)) return;
+  handledLaunchUrls.add(url);
+  await handleIncomingUrl(url);
+}
+
 // Set before the first await: rapid taps cannot initialize the SDK twice.
 // Once initialization succeeds, later bootstrap errors must not allow a restart.
 let starting = false;
@@ -86,10 +96,10 @@ async function start(): Promise<void> {
       // Register warm-start handling before reading the launch URL so events
       // arriving during the launch lookup also have a listener.
       await App.addListener('appUrlOpen', (e) => {
-        void handleIncomingUrl(e.url);
+        void handleLaunchUrlOnce(e.url);
       });
       const launch = await App.getLaunchUrl();
-      if (launch?.url) await handleIncomingUrl(launch.url);
+      if (launch?.url) await handleLaunchUrlOnce(launch.url);
     } else {
       log('Browser preview: native SDK features require iOS or Android.');
     }

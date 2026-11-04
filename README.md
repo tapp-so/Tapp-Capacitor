@@ -388,7 +388,7 @@ None of these is declared as linked to the user or used for tracking. Apps must 
 
 ### Logging
 
-Capacitor's debug-level bridge logging can print plugin call arguments, including `authToken` and `tappToken`. For builds you distribute, set `loggingBehavior` to `'production'` or `'none'` in `capacitor.config.ts`:
+Capacitor debug builds log every plugin call's arguments to logcat (Android) and the Xcode console (iOS), so `authToken` and `tappToken` appear in plain text. Set `loggingBehavior` to `'production'` or `'none'` in `capacitor.config.ts` (the example app uses `'production'`):
 
 ```ts
 import type { CapacitorConfig } from '@capacitor/cli';
