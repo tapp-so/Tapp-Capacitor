@@ -96,14 +96,17 @@ async function start(): Promise<void> {
     if (Capacitor.isNativePlatform()) {
       // Register warm-start handling before reading the launch URL so events
       // arriving during the launch lookup also have a listener.
-      await App.addListener('appUrlOpen', (e) => {
-        void (bootstrapping ? handleStartupUrl(e.url) : handleIncomingUrl(e.url));
-      });
-      // URLs arriving before Start is tapped are only caught at cold launch, via retain/getLaunchUrl.
-      const launch = await App.getLaunchUrl();
-      if (launch?.url) await handleStartupUrl(launch.url);
-      bootstrapping = false;
-      startupUrls.clear();
+      try {
+        await App.addListener('appUrlOpen', (e) => {
+          void (bootstrapping ? handleStartupUrl(e.url) : handleIncomingUrl(e.url));
+        });
+        // Warm-start URLs opened before Start is tapped have no listener and are lost; only a cold-launch URL is recovered via getLaunchUrl.
+        const launch = await App.getLaunchUrl();
+        if (launch?.url) await handleStartupUrl(launch.url);
+      } finally {
+        bootstrapping = false;
+        startupUrls.clear();
+      }
     } else {
       log('Browser preview: native SDK features require iOS or Android.');
     }
