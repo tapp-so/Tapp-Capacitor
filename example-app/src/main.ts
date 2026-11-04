@@ -49,13 +49,14 @@ async function handleIncomingUrl(url: string): Promise<void> {
   }
 }
 
-// On Android cold start the launch URL is delivered twice: via the appUrlOpen
-// listener and via App.getLaunchUrl(). Track handled URLs so it is processed once.
-const handledLaunchUrls = new Set<string>();
+// During startup the launch URL may arrive via both appUrlOpen and getLaunchUrl
+// on Android cold start; both go through this helper so order doesn't matter.
+let bootstrapping = true;
+const startupUrls = new Set<string>();
 
-async function handleLaunchUrlOnce(url: string): Promise<void> {
-  if (handledLaunchUrls.has(url)) return;
-  handledLaunchUrls.add(url);
+async function handleStartupUrl(url: string): Promise<void> {
+  if (startupUrls.has(url)) return;
+  startupUrls.add(url);
   await handleIncomingUrl(url);
 }
 
@@ -96,10 +97,13 @@ async function start(): Promise<void> {
       // Register warm-start handling before reading the launch URL so events
       // arriving during the launch lookup also have a listener.
       await App.addListener('appUrlOpen', (e) => {
-        void handleLaunchUrlOnce(e.url);
+        void (bootstrapping ? handleStartupUrl(e.url) : handleIncomingUrl(e.url));
       });
+      // URLs arriving before Start is tapped are only caught at cold launch, via retain/getLaunchUrl.
       const launch = await App.getLaunchUrl();
-      if (launch?.url) await handleLaunchUrlOnce(launch.url);
+      if (launch?.url) await handleStartupUrl(launch.url);
+      bootstrapping = false;
+      startupUrls.clear();
     } else {
       log('Browser preview: native SDK features require iOS or Android.');
     }

@@ -4,8 +4,9 @@ const config: CapacitorConfig = {
   appId: 'so.tapp.capacitor.example',
   appName: 'Tapp Capacitor Example',
   webDir: 'dist',
-  // Capacitor debug logging prints plugin call arguments, including credentials.
-  loggingBehavior: 'production',
+  // 'none' turns Capacitor bridge logging off entirely, so plugin call
+  // arguments, including credentials, are never logged.
+  loggingBehavior: 'none',
 };
 
 export default config;
