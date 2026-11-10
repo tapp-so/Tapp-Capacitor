@@ -1,5 +1,6 @@
 name: Publish
 
+# The first version is published manually (see RELEASING.md); this workflow publishes later versions.
 on:
   workflow_dispatch:
     inputs:
@@ -36,12 +37,36 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
-      # Needed later for trusted publishing with a dist-tag (OIDC needs npm >= 11.21.0;
-      # Node 22 ships npm 10.9.9). It also works with token auth.
+      # Trusted publishing needs Node >= 22.14.0 and npm >= 11.5.1;
+      # publishing with a dist-tag over OIDC needs npm >= 11.21.0.
+      # node-version '22' matches ci.yml and resolves to the latest 22.x;
+      # this check guards the minimum versions.
       - name: Use npm 11.21.0
         run: |
           npm install -g npm@11.21.0
-          npm --version
+          node -e '
+          const { execFileSync } = require("node:child_process");
+          function atLeast(actual, minimum) {
+            const parts = actual.replace(/^v/, "").split(".").map(Number);
+            const required = minimum.split(".").map(Number);
+            for (let i = 0; i < 3; i++) {
+              if (!Number.isInteger(parts[i])) return false;
+              if (parts[i] !== required[i]) return parts[i] > required[i];
+            }
+            return true;
+          }
+          const npmVersion = execFileSync("npm", ["--version"], { encoding: "utf8" }).trim();
+          for (const [name, actual, minimum] of [
+            ["Node", process.version, "22.14.0"],
+            ["npm", npmVersion, "11.21.0"]
+          ]) {
+            if (!atLeast(actual, minimum)) {
+              console.error(name + " >= " + minimum + " is required; found " + actual);
+              process.exit(1);
+            }
+            console.log(name + ": " + actual);
+          }
+          '
       - name: Require a prerelease matching the publish tag
         run: |
           node -e '
@@ -75,21 +100,48 @@ jobs:
             process.exit(1);
           }
           '
+      - name: Refuse an already-published version
+        shell: bash
+        run: |
+          set -euo pipefail
+          NAME=$(node -p 'require("./package.json").name')
+          VERSION=$(node -p 'require("./package.json").version')
+          set +e
+          LOOKUP_OUTPUT=$(npm view "$NAME@$VERSION" version --json)
+          LOOKUP_STATUS=$?
+          set -e
+          export NAME VERSION LOOKUP_OUTPUT LOOKUP_STATUS
+          node -e '
+          const { NAME, VERSION, LOOKUP_OUTPUT, LOOKUP_STATUS } = process.env;
+          const output = LOOKUP_OUTPUT.trim();
+          const status = Number(LOOKUP_STATUS);
+          let result;
+          try { result = JSON.parse(output); } catch { /* Fail closed below. */ }
+          if (status === 0 && result === VERSION) {
+            console.error(NAME + "@" + VERSION + " is already published. Refusing to publish.");
+            process.exit(1);
+          }
+          if (status !== 0 && result && result.error && result.error.code === "E404") {
+            console.log(NAME + "@" + VERSION + " is not published.");
+            process.exit(0);
+          }
+          console.error("Could not check the published version (exit " + status + "). Refusing to publish.");
+          console.error(LOOKUP_OUTPUT);
+          process.exit(1);
+          '
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       - name: Publish (dry run)
         if: ${{ inputs.dry_run }}
-        # No token needed. The log may say "tag latest"; the real publish uses publishConfig.tag.
+        # The log may say "tag latest"; the real publish uses publishConfig.tag.
         run: npm publish --dry-run
       - name: Publish to npm
         if: ${{ !inputs.dry_run }}
-        env:
-          # The first publish needs the NPM_TOKEN secret (an environment secret in npm-publish).
-          # npm trusted publishing (OIDC) can only be configured once the package exists on npm;
-          # after that, this token (and this env line) can be removed.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        # tag (alpha), provenance and access come from publishConfig in package.json, so no CLI flags here.
+        # Authenticates with npm trusted publishing (OIDC via id-token: write), no token.
+        # Provenance is generated automatically; publishConfig.provenance stays true.
+        # Tag (alpha) and access come from publishConfig in package.json.
+        # The npm trusted publisher must allow npm publish for publish.yml + environment npm-publish.
         # The prepack script builds dist/ during publish.
         run: npm publish
