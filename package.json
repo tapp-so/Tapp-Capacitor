@@ -39,7 +39,7 @@
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
     "verify:ios": "xcodebuild -scheme TappCapacitorSdk -destination generic/platform=iOS",
     "verify": "npm run verify:ios && npm run verify:android && npm run build",
-    "prepublishOnly": "npm run build"
+    "prepack": "npm run build"
   },
   "peerDependencies": {
     "@capacitor/core": ">=6.0.0 <9.0.0"
@@ -67,5 +67,10 @@
     "android": {
       "src": "android"
     }
+  },
+  "publishConfig": {
+    "tag": "alpha",
+    "provenance": true,
+    "access": "public"
   }
 }
