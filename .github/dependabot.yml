@@ -11,8 +11,14 @@ updates:
     groups:
       capacitor:
         patterns: ["@capacitor/*"]
+      dev-dependencies:
+        dependency-type: development
+        update-types: ["minor", "patch"]
+        exclude-patterns: ["@capacitor/*"]
     ignore:
       - dependency-name: "@capacitor/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "*"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: gradle
     directory: "/android"
@@ -21,3 +27,7 @@ updates:
     ignore:
       - dependency-name: "com.github.Tapp-so.Tapp-Android:*"
       - dependency-name: "com.android.tools.build:gradle"
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.jetbrains.kotlinx:kotlinx-coroutines-android"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
