@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example app disables Capacitor bridge logging (`loggingBehavior: 'none'`); README logging guidance corrected.
 - Example app handles the Android cold-start launch URL only once during startup.
 
+## [0.1.0-alpha.1] - 2026-11-11
+
+First release published from GitHub Actions via npm trusted publishing (OIDC) with provenance. There are no code changes compared to `0.1.0-alpha.0`.
+
 ## [0.1.0-alpha.0] - 2026-11-03
 
 ### Added
