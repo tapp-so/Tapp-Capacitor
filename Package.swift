@@ -11,7 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", "6.0.0"..<"9.0.0"),
-        .package(url: "https://github.com/tapp-so/Tapp-iOS.git", exact: "1.1.23"),
+        .package(url: "https://github.com/tapp-so/Tapp-iOS.git", exact: "1.1.24"),
         .package(url: "https://github.com/tapp-so/Tapp-Networking-iOS.git", exact: "1.1.7")
     ],
     targets: [

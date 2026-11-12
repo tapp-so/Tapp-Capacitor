@@ -2,7 +2,7 @@
 
 `tapp-capacitor-sdk` is a Capacitor plugin for Tapp deep linking and attribution. It exposes one TypeScript API and wraps the native Tapp iOS SDK and Tapp Android SDK. Use it to start Tapp, generate tracked Tapp links, send events, and resolve incoming and deferred (install) links from a Capacitor app.
 
-> **Alpha pre-release.** This is `tapp-capacitor-sdk` `0.1.0-alpha.1`. Interfaces may change before a stable release.
+> **Alpha pre-release.** This is `tapp-capacitor-sdk` `0.1.0-alpha.2`. Interfaces may change before a stable release.
 
 ## Requirements
 
@@ -93,7 +93,7 @@ The plugin pins these native SDK versions:
 
 | Platform | Dependency | Version | Pin |
 |---|---|---|---|
-| iOS | `Tapp` | 1.1.23 | SPM `exact: "1.1.23"`; CocoaPods `= 1.1.23` |
+| iOS | `Tapp` | 1.1.24 | SPM `exact: "1.1.24"`; CocoaPods `= 1.1.24` |
 | iOS | `Tapp-Networking` | 1.1.7 | SPM `exact: "1.1.7"`; CocoaPods `= 1.1.7` |
 | Android | `com.github.Tapp-so.Tapp-Android:Tapp-Native` | 1.1.6 | Gradle `implementation` |
 
