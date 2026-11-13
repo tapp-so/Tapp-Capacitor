@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example app disables Capacitor bridge logging (`loggingBehavior: 'none'`); README logging guidance corrected.
 - Example app handles the Android cold-start launch URL only once during startup.
 
+## [0.1.0-alpha.2] - 2026-11-12
+
+### Changed
+
+- Bumped the iOS `Tapp` pin from `1.1.23` to `1.1.24` for Swift Package Manager and CocoaPods. `Tapp-Networking` remains pinned at `1.1.7`.
+
+### Fixed
+
+- Tapp `1.1.24` includes the stale-keychain affiliate configuration fix from Tapp-iOS.
+
 ## [0.1.0-alpha.1] - 2026-11-11
 
 First release published from GitHub Actions via npm trusted publishing (OIDC) with provenance. There are no code changes compared to `0.1.0-alpha.0`.
