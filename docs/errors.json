@@ -1,0 +1,716 @@
+{
+  "schema": "tapp-errors/1",
+  "package": {
+    "name": "tapp-capacitor-sdk",
+    "version": "0.1.0-alpha.2",
+    "sdk": "core",
+    "framework": "capacitor"
+  },
+  "errors": [
+    {
+      "id": "ios-start-invalid-argument",
+      "code": "INVALID_ARGUMENT",
+      "message": "authToken and tappToken must be nonempty strings; env must be PRODUCTION or SANDBOX.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "start"
+      ],
+      "behaviour": "reject",
+      "when": "before-start",
+      "cause": "A token is missing, not a string, or empty, or env is not exactly PRODUCTION or SANDBOX.",
+      "fix": "Load authToken and tappToken from app configuration for the same dashboard app; match env to the environment that issued both tokens. Supply nonblank strings and exactly PRODUCTION or SANDBOX. Do not log credentials.",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 32
+      },
+      "notes": "iOS accepts whitespace-only tokens at this guard because it checks isEmpty without trimming. Android and web reject them. After successful native startup, later start() calls resolve without validating options."
+    },
+    {
+      "id": "ios-url-not-started",
+      "code": "NOT_STARTED",
+      "message": "Tapp has not been started. Call start() first.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "before-start",
+      "cause": "The wrapper has not completed start(); this guard runs before influencer validation.",
+      "fix": "Await successful start() before calling this method; load matching authToken, tappToken, and env from app configuration.",
+      "docs": "docs/errors.md#not_started",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 49
+      }
+    },
+    {
+      "id": "ios-url-invalid-influencer",
+      "code": "INVALID_ARGUMENT",
+      "message": "influencer must be a nonempty string.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "influencer is missing, not a string, or empty.",
+      "fix": "Supply the intended nonblank influencer string. iOS accepts whitespace-only strings at this guard; Android rejects them.",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 53
+      }
+    },
+    {
+      "id": "ios-url-sdk-failure",
+      "code": "URL_ERROR",
+      "message": "error.localizedDescription",
+      "messageKind": "localizedDescription",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "The native URL-generation completion returns failure.",
+      "fix": "Check that authToken, tappToken, and env match the same dashboard app and environment, that start() completed, and that network access is available; follow the failure handling in this document.",
+      "docs": "docs/errors.md#url_error",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 66
+      },
+      "notes": "The runtime message comes from the native error and can vary by error and locale; it may not contain a fix."
+    },
+    {
+      "id": "ios-event-not-started",
+      "code": "NOT_STARTED",
+      "message": "Tapp has not been started. Call start() first.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "handleTappEvent"
+      ],
+      "behaviour": "reject",
+      "when": "before-start",
+      "cause": "The wrapper has not completed start(); this guard runs before eventAction validation.",
+      "fix": "Await successful start() before calling this method; load matching authToken, tappToken, and env from app configuration.",
+      "docs": "docs/errors.md#not_started",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 76
+      }
+    },
+    {
+      "id": "ios-event-invalid-action",
+      "code": "INVALID_ARGUMENT",
+      "message": "eventAction must be an integer from 0 through 40.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "handleTappEvent"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "eventAction is missing, nonnumeric, a boolean, nonfinite, fractional, or outside 0 through 40.",
+      "fix": "Supply a finite integer eventAction from 0 through 40, not a boolean or numeric string. Use 0 for CUSTOM; an absent or blank customValue uses custom_event_autogenerated.",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 82
+      }
+    },
+    {
+      "id": "ios-should-process-invalid-url",
+      "code": "INVALID_URL",
+      "message": "url must be a nonempty, valid URL.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "shouldProcess"
+      ],
+      "behaviour": "reject",
+      "when": "either",
+      "cause": "URL parsing or the nonblank, scheme-present, or blocked-scheme checks fail.",
+      "fix": "Supply a nonblank string that the platform URL parser accepts with a scheme; javascript:, data:, and file: are blocked case-insensitively. Trim surrounding whitespace and verify the intended link host.",
+      "docs": "docs/errors.md#invalid_url",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 97
+      }
+    },
+    {
+      "id": "ios-fetch-invalid-url",
+      "code": "INVALID_URL",
+      "message": "url must be a nonempty, valid URL.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "fetchLinkData"
+      ],
+      "behaviour": "reject",
+      "when": "either",
+      "cause": "URL parsing or validation fails; checked before startup.",
+      "fix": "Supply a nonblank string that the platform URL parser accepts with a scheme; javascript:, data:, and file: are blocked case-insensitively. Trim surrounding whitespace and verify the intended link host.",
+      "docs": "docs/errors.md#invalid_url",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 107
+      }
+    },
+    {
+      "id": "ios-fetch-not-started",
+      "code": null,
+      "message": "Tapp has not been started. Call start() first.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "fetchLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "before-start",
+      "cause": "URL is valid but the wrapper has not completed start().",
+      "fix": "Await successful start() before calling this method; load matching authToken, tappToken, and env from app configuration. Check data.error before routing.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 112
+      },
+      "notes": "Resolves { error: true, message: notStartedMessage }; no rejection code."
+    },
+    {
+      "id": "ios-origin-not-started",
+      "code": null,
+      "message": "Tapp has not been started. Call start() first.",
+      "messageKind": "exact",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "before-start",
+      "cause": "The wrapper has not completed start(); this method takes no URL.",
+      "fix": "Await successful start() before calling this method; load matching authToken, tappToken, and env from app configuration. Check data.error before routing.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 124
+      },
+      "notes": "Resolves { error: true, message: notStartedMessage }; no rejection code."
+    },
+    {
+      "id": "ios-link-data-sdk-failure",
+      "code": null,
+      "message": "error.localizedDescription",
+      "messageKind": "localizedDescription",
+      "platforms": [
+        "ios"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "after-start",
+      "cause": "The native link-data completion returns failure.",
+      "fix": "Await start() on a native platform, check configuration and network access, and inspect data.error before routing. Follow the failure handling in this document.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "ios/Sources/TappCapacitorPlugin/TappPlugin.swift",
+        "line": 137
+      },
+      "notes": "TappMapping.failure at ios/Sources/TappCapacitorPlugin/TappMapping.swift:80 constructs { error: true, message }; the native localized message is variable and has no code."
+    },
+    {
+      "id": "android-start-invalid-argument",
+      "code": "INVALID_ARGUMENT",
+      "message": "Nonempty authToken and tappToken and env PRODUCTION or SANDBOX are required.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "start"
+      ],
+      "behaviour": "reject",
+      "when": "before-start",
+      "cause": "A token is missing, not a string, empty, or whitespace-only, or env is invalid.",
+      "fix": "Load authToken and tappToken from app configuration for the same dashboard app; match env to the environment that issued both tokens. Supply nonblank strings and exactly PRODUCTION or SANDBOX. Do not log credentials.",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 55
+      },
+      "notes": "Android uses isNullOrBlank; iOS accepts whitespace-only tokens at its validation guard. Later start() calls after successful native startup resolve without validation."
+    },
+    {
+      "id": "android-start-sdk-failure",
+      "code": "START_ERROR",
+      "message": "Unable to start Tapp.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "start"
+      ],
+      "behaviour": "reject",
+      "when": "before-start",
+      "cause": "SDK instance creation or initialization throws an Exception.",
+      "fix": "Check that authToken, tappToken, and env match the same dashboard app and environment, that start() completed, and that network access is available; follow the failure handling in this document.",
+      "docs": "docs/errors.md#start_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 66
+      },
+      "notes": "The wrapper suppresses native exception text to avoid exposing configuration or credentials. The message itself does not explain recovery."
+    },
+    {
+      "id": "android-url-invalid-influencer",
+      "code": "INVALID_ARGUMENT",
+      "message": "A nonempty influencer is required.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "influencer is missing, not a string, empty, or whitespace-only.",
+      "fix": "Supply the intended nonblank influencer string after awaiting start().",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 75
+      }
+    },
+    {
+      "id": "android-url-error-result",
+      "code": "URL_ERROR",
+      "message": "result.message if nonblank; otherwise \"Unable to generate Tapp URL.\"",
+      "messageKind": "pattern",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "The SDK URL result has error == true.",
+      "fix": "Check that authToken, tappToken, and env match the same dashboard app and environment, that start() completed, and that network access is available; follow the failure handling in this document.",
+      "docs": "docs/errors.md#url_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 85
+      },
+      "notes": "result.message is preserved when nonblank; the exact fallback is Unable to generate Tapp URL. SDK messages vary and may not explain recovery."
+    },
+    {
+      "id": "android-url-empty-result",
+      "code": "URL_ERROR",
+      "message": "No Tapp URL returned.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "The SDK reports no error but returns a blank influencer_url.",
+      "fix": "Check that authToken, tappToken, and env match the same dashboard app and environment, that start() completed, and that network access is available; follow the failure handling in this document.",
+      "docs": "docs/errors.md#url_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 87
+      }
+    },
+    {
+      "id": "android-url-cancellation",
+      "code": null,
+      "message": "Rethrown CancellationException (cancelled); original message, if any, is unchanged.",
+      "messageKind": "pattern",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "throw",
+      "when": "after-start",
+      "cause": "The URL coroutine is cancelled, including during plugin destruction.",
+      "fix": "Treat plugin destruction as lifecycle cancellation. If link generation is still needed, call it from an active plugin instance after start() completes.",
+      "docs": "docs/errors.md#internal_throws",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 92
+      },
+      "notes": "Internal coroutine throw, not a call.reject site. The wrapper does not guarantee JavaScript Promise settlement on this path; there is no wrapper error code or fixed message."
+    },
+    {
+      "id": "android-url-exception",
+      "code": "URL_ERROR",
+      "message": "Unable to generate Tapp URL.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "The URL coroutine catches an Exception other than CancellationException.",
+      "fix": "Check that authToken, tappToken, and env match the same dashboard app and environment, that start() completed, and that network access is available; follow the failure handling in this document.",
+      "docs": "docs/errors.md#url_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 94
+      },
+      "notes": "The fixed message does not explain recovery and does not expose the original exception text."
+    },
+    {
+      "id": "android-event-invalid-action",
+      "code": "INVALID_ARGUMENT",
+      "message": "eventAction must be an integer from 0 through 40.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "handleTappEvent"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "eventAction is missing, nonnumeric, nonfinite, fractional, or outside 0 through 40.",
+      "fix": "Supply a finite integer eventAction from 0 through 40, not a boolean or numeric string. Use 0 for CUSTOM; an absent or blank customValue uses custom_event_autogenerated.",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 104
+      }
+    },
+    {
+      "id": "android-event-sdk-failure",
+      "code": "HANDLE_EVENT_ERROR",
+      "message": "Unable to handle Tapp event.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "handleTappEvent"
+      ],
+      "behaviour": "reject",
+      "when": "after-start",
+      "cause": "SDK event handling throws an Exception.",
+      "fix": "Check that authToken, tappToken, and env match the same dashboard app and environment, that start() completed, and that network access is available; follow the failure handling in this document.",
+      "docs": "docs/errors.md#handle_event_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 112
+      },
+      "notes": "The fixed message does not explain recovery and does not expose the original exception text."
+    },
+    {
+      "id": "android-fetch-cancellation",
+      "code": null,
+      "message": "Rethrown CancellationException (cancelled); original message, if any, is unchanged.",
+      "messageKind": "pattern",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "throw",
+      "when": "after-start",
+      "cause": "The link-data coroutine is cancelled, including during plugin destruction.",
+      "fix": "Treat plugin destruction as lifecycle cancellation. If link data is still needed, fetch it from an active plugin instance after start() completes.",
+      "docs": "docs/errors.md#internal_throws",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 144
+      },
+      "notes": "Internal coroutine throw, not a call.reject or resolve-error site. The wrapper does not guarantee JavaScript Promise settlement on this path; no wrapper code or fixed message is assigned."
+    },
+    {
+      "id": "android-fetch-exception",
+      "code": null,
+      "message": "error.message after optionalString filtering; otherwise \"An unexpected error occurred\"",
+      "messageKind": "pattern",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "after-start",
+      "cause": "The link-data coroutine catches an Exception other than CancellationException.",
+      "fix": "Await start() on a native platform, check configuration and network access, and inspect data.error before routing. Follow the failure handling in this document.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 146
+      },
+      "notes": "TappMapping.error at android/src/main/java/so/tapp/capacitor/TappMapping.kt:102 preserves a message unless optionalString filters it: null, trimmed empty text, case-insensitive \"null\", trimmed \"-1\", or a sentinel (\"tapp_url was not returned\", \"attr_tapp_url was not returned\", \"influencer was not returned\", \"deepLink was not returned\"). Filtered messages become exactly \"An unexpected error occurred\" (no final period). Nonfiltered text retains its original whitespace."
+    },
+    {
+      "id": "android-require-started",
+      "code": "NOT_STARTED",
+      "message": "Tapp has not been started. Call start() first.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "url",
+        "handleTappEvent"
+      ],
+      "behaviour": "reject",
+      "when": "before-start",
+      "cause": "The wrapper has not completed start(); requireStarted runs before method argument validation.",
+      "fix": "Await successful start() before calling this method; load matching authToken, tappToken, and env from app configuration.",
+      "docs": "docs/errors.md#not_started",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 155
+      },
+      "notes": "Message constant: android/src/main/java/so/tapp/capacitor/TappMapping.kt:9."
+    },
+    {
+      "id": "android-link-data-not-started",
+      "code": null,
+      "message": "Tapp has not been started. Call start() first.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "before-start",
+      "cause": "The wrapper has not completed start(); fetchLinkData has already validated its URL.",
+      "fix": "Await successful start() before calling this method; load matching authToken, tappToken, and env from app configuration. Check data.error before routing.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 161
+      },
+      "notes": "Resolves { error: true, message }; NOT_STARTED is not assigned as a code. Message constant: android/src/main/java/so/tapp/capacitor/TappMapping.kt:9."
+    },
+    {
+      "id": "android-required-url",
+      "code": "INVALID_URL",
+      "message": "url must be a nonempty, valid URL.",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "shouldProcess",
+        "fetchLinkData"
+      ],
+      "behaviour": "reject",
+      "when": "either",
+      "cause": "URL parsing or the nonblank, absolute/scheme-present, or blocked-scheme checks fail; fetchLinkData checks this before startup.",
+      "fix": "Supply a nonblank string that the platform URL parser accepts with a scheme; javascript:, data:, and file: are blocked case-insensitively. Trim surrounding whitespace and verify the intended link host.",
+      "docs": "docs/errors.md#invalid_url",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappPlugin.kt",
+        "line": 168
+      }
+    },
+    {
+      "id": "android-link-data-null-response",
+      "code": null,
+      "message": "No link data returned",
+      "messageKind": "exact",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "after-start",
+      "cause": "The native link-data request returns null.",
+      "fix": "Await start() on a native platform, check configuration and network access, and inspect data.error before routing. Follow the failure handling in this document.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappMapping.kt",
+        "line": 108
+      },
+      "notes": "Exact message has no final period. TappMapping.linkData also maps deferredLinkReceived event payloads, but the fetch request path is the nullable caller."
+    },
+    {
+      "id": "android-link-data-error-response",
+      "code": null,
+      "message": "response.message after optionalString filtering; otherwise \"An unexpected error occurred\"",
+      "messageKind": "pattern",
+      "platforms": [
+        "android"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "after-start",
+      "cause": "The SDK link-data response has error == true.",
+      "fix": "Await start() on a native platform, check configuration and network access, and inspect data.error before routing. Follow the failure handling in this document.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "android/src/main/java/so/tapp/capacitor/TappMapping.kt",
+        "line": 109
+      },
+      "notes": "TappMapping.error at android/src/main/java/so/tapp/capacitor/TappMapping.kt:102 preserves a message unless optionalString filters it: null, trimmed empty text, case-insensitive \"null\", trimmed \"-1\", or a sentinel (\"tapp_url was not returned\", \"attr_tapp_url was not returned\", \"influencer was not returned\", \"deepLink was not returned\"). Filtered messages become exactly \"An unexpected error occurred\" (no final period). Nonfiltered text retains its original whitespace. The same mapping also emits an error payload through deferredLinkReceived; event delivery does not settle a method Promise."
+    },
+    {
+      "id": "web-start-invalid-argument",
+      "code": "INVALID_ARGUMENT",
+      "message": "authToken, tappToken, and a PRODUCTION or SANDBOX env are required.",
+      "messageKind": "exact",
+      "platforms": [
+        "web"
+      ],
+      "methods": [
+        "start"
+      ],
+      "behaviour": "throw",
+      "when": "either",
+      "cause": "A token is missing, not a string, empty, or whitespace-only, or env is invalid.",
+      "fix": "Load authToken and tappToken from app configuration for the same dashboard app; match env to the environment that issued both tokens. Supply nonblank strings and exactly PRODUCTION or SANDBOX. Do not log credentials.",
+      "docs": "docs/errors.md#invalid_argument",
+      "source": {
+        "file": "src/web.ts",
+        "line": 33
+      },
+      "notes": "Throw inside async start() rejects its Promise. Every web start() validates; valid input only resolves and warns once per instance, without initializing a native SDK."
+    },
+    {
+      "id": "web-url-unimplemented",
+      "code": "UNIMPLEMENTED",
+      "message": "Not implemented on web.",
+      "messageKind": "exact",
+      "platforms": [
+        "web"
+      ],
+      "methods": [
+        "url"
+      ],
+      "behaviour": "throw",
+      "when": "either",
+      "cause": "Link generation requires a native platform.",
+      "fix": "Run url() on iOS or Android after awaiting start(); web start() does not enable native functionality.",
+      "docs": "docs/errors.md#unimplemented",
+      "source": {
+        "file": "src/web.ts",
+        "line": 49
+      },
+      "notes": "Throw inside an async method rejects its Promise, before any option or startup validation."
+    },
+    {
+      "id": "web-event-unimplemented",
+      "code": "UNIMPLEMENTED",
+      "message": "Not implemented on web.",
+      "messageKind": "exact",
+      "platforms": [
+        "web"
+      ],
+      "methods": [
+        "handleTappEvent"
+      ],
+      "behaviour": "throw",
+      "when": "either",
+      "cause": "Event delivery requires a native platform.",
+      "fix": "Run handleTappEvent() on iOS or Android after awaiting start(); web start() does not enable native functionality.",
+      "docs": "docs/errors.md#unimplemented",
+      "source": {
+        "file": "src/web.ts",
+        "line": 57
+      },
+      "notes": "Throw inside an async method rejects its Promise, before any option or startup validation."
+    },
+    {
+      "id": "web-validate-url",
+      "code": "INVALID_URL",
+      "message": "url must be a nonempty, valid URL.",
+      "messageKind": "exact",
+      "platforms": [
+        "web"
+      ],
+      "methods": [
+        "shouldProcess",
+        "fetchLinkData"
+      ],
+      "behaviour": "throw",
+      "when": "either",
+      "cause": "validateTappUrl rejects a missing, nonstring, blank, unparseable, scheme-less, or blocked-scheme URL.",
+      "fix": "Supply a nonblank string that the platform URL parser accepts with a scheme; javascript:, data:, and file: are blocked case-insensitively. Trim surrounding whitespace and verify the intended link host.",
+      "docs": "docs/errors.md#invalid_url",
+      "source": {
+        "file": "src/web.ts",
+        "line": 88
+      },
+      "notes": "validateUrl throws synchronously inside the async public methods, causing their Promises to reject. Validation does not depend on start()."
+    },
+    {
+      "id": "web-link-data-unsupported",
+      "code": null,
+      "message": "Tapp is not supported on web.",
+      "messageKind": "exact",
+      "platforms": [
+        "web"
+      ],
+      "methods": [
+        "fetchLinkData",
+        "fetchOriginLinkData"
+      ],
+      "behaviour": "resolve-error",
+      "when": "either",
+      "cause": "Link-data resolution requires a native SDK; fetchLinkData has already validated the URL.",
+      "fix": "Use iOS or Android for link resolution. Check data.error before routing; calling start() on web does not remove this error.",
+      "docs": "docs/errors.md#resolve_error",
+      "source": {
+        "file": "src/web.ts",
+        "line": 95
+      },
+      "notes": "unsupportedLinkData returns { error: true, message }; both public async callers resolve it. This same text is also a warning from valid web start(), which resolves successfully."
+    }
+  ],
+  "notes": "The Markdown catalog contains the validation/startup tree and failure handling. Behaviour describes the source operation: web throws become rejected Promises; Android cancellation throws are internal and do not guarantee Promise settlement. Native error results have no code. iOS accepts whitespace-only tokens at its guard; Android and web reject them. Native start() after success skips validation. Mapping helper construction is attributed to the calling error-result sites. Listener-only failures are described in Markdown because they are neither throws, rejections, nor resolved error results."
+}
