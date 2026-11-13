@@ -76,7 +76,7 @@ On the launcher activity in `android/app/src/main/AndroidManifest.xml`, use the 
 </intent-filter>
 ```
 
-Tapp hosts `https://HOST/.well-known/assetlinks.json`. Configure the application ID and the distributed build's **SHA-256 certificate hash** (also called **SHA-256 signing certificate hash**) in the dashboard.
+Tapp hosts `https://HOST/.well-known/assetlinks.json`. Configure the application ID and the distributed build's **SHA-256 certificate hash** in the dashboard.
 
 ### iOS dependency managers
 
