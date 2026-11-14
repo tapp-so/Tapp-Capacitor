@@ -1,0 +1,13 @@
+---
+alwaysApply: false
+description: Tapp SDK integration
+---
+Read the repository-root [AGENTS.md](../../AGENTS.md) for integration and contributor instructions.
+
+- Choose exactly one of tapp-capacitor-sdk or tapp-adjust-capacitor-sdk, never both.
+- Call start() first and await completion before url(), handleTappEvent(), or link resolution; register listeners before startup.
+- Wire the iOS Associated Domains entitlement and CODE_SIGN_ENTITLEMENTS, plus the Android autoVerify App Links intent filter.
+- In CocoaPods mode, put tapp-so/Specs.git before cdn.cocoapods.org in ios/App/Podfile; include both sources.
+- Never hard-code authToken or tappToken; load them from environment/configuration.
+
+Use “device match” and “SHA-256 certificate hash”. Never log tokens.

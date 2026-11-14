@@ -379,6 +379,11 @@ export interface TappPlugin {
    * initialization with START_ERROR. After a successful native start, later calls
    * resolve without validation. On web, every call validates input; the warning is
    * logged once.
+   * Register native event listeners before calling start().
+   * @throws Rejects with INVALID_ARGUMENT for invalid credentials or environment.
+   * @throws Rejects with START_ERROR on Android if SDK initialization fails.
+   * @example
+   * await Tapp.start({ authToken: AUTH_TOKEN, env: 'SANDBOX', tappToken: TAPP_TOKEN });
    * @since 0.1.0
    */
   start(options: TappStartOptions): Promise<void>;
@@ -386,6 +391,11 @@ export interface TappPlugin {
    * Generate a Tapp link. Rejects with NOT_STARTED before start(), INVALID_ARGUMENT
    * for a missing or empty influencer (also whitespace-only on Android), or URL_ERROR
    * when link generation fails. On web, rejects with UNIMPLEMENTED.
+   * Call start() first and await completion on iOS and Android.
+   * @throws Rejects with NOT_STARTED, INVALID_ARGUMENT, or URL_ERROR on native platforms.
+   * @throws Rejects with UNIMPLEMENTED on web, regardless of startup or options.
+   * @example
+   * const { url } = await Tapp.url({ influencer: 'creator' });
    * @since 0.1.0
    */
   url(options: TappUrlOptions): Promise<{ url: string }>;
@@ -394,6 +404,12 @@ export interface TappPlugin {
    * start() or INVALID_ARGUMENT unless eventAction is an integer from 0 through 40.
    * Android may also reject with HANDLE_EVENT_ERROR if SDK event handling fails.
    * On web, rejects with UNIMPLEMENTED.
+   * Call start() first and await completion on iOS and Android.
+   * @throws Rejects with NOT_STARTED or INVALID_ARGUMENT on native platforms.
+   * @throws Rejects with HANDLE_EVENT_ERROR on Android if SDK event handling fails.
+   * @throws Rejects with UNIMPLEMENTED on web, regardless of startup or options.
+   * @example
+   * await Tapp.handleTappEvent({ eventAction: EventAction.TAPP_PURCHASE });
    * @since 0.1.0
    */
   handleTappEvent(options: TappEventOptions): Promise<void>;
@@ -405,6 +421,11 @@ export interface TappPlugin {
    * Invalid URLs reject with INVALID_URL. On iOS,
    * resolves with the native result. On Android, resolves with { value: false } if the
    * native SDK throws. On web, a valid URL resolves with { value: false }.
+   * A false result is a successful check, not a link-data error payload.
+   * @throws Rejects with INVALID_URL for a missing, blank, malformed, or blocked URL,
+   * including before start().
+   * @example
+   * const { value } = await Tapp.shouldProcess({ url: incomingUrl });
    * @since 0.1.0
    */
   shouldProcess(options: { url: string }): Promise<{ value: boolean }>;
@@ -417,6 +438,13 @@ export interface TappPlugin {
    * a valid URL resolves with { error: true, message }. After start(), SDK/backend
    * failures resolve with { error: true, message }. On web, a valid URL resolves with
    * { error: true, message: 'Tapp is not supported on web.' }.
+   * Call start() first and await completion for native link resolution.
+   * Always check the resolved data.error before routing; resolution failures do not reject.
+   * @throws Rejects with INVALID_URL for a missing, blank, malformed, or blocked URL,
+   * even before start(); missing startup instead resolves an error payload for valid URLs.
+   * @example
+   * const data = await Tapp.fetchLinkData({ url: incomingUrl });
+   * if (!data.error) route(data);
    * @since 0.1.0
    */
   fetchLinkData(options: { url: string }): Promise<TappLinkData>;
@@ -424,11 +452,24 @@ export interface TappPlugin {
    * Resolve the original install link. Takes no URL, so no URL validation applies.
    * SDK/backend failures and calls before start() resolve with { error: true, message }.
    * On web, resolves with { error: true, message: 'Tapp is not supported on web.' }.
+   * Call start() first and await completion for native install-link resolution.
+   * Always check the resolved data.error before routing. No SDK rejection codes:
+   * missing startup and resolution failures are returned in the resolved payload.
+   * @example
+   * const data = await Tapp.fetchOriginLinkData();
+   * if (!data.error) route(data);
    * @since 0.1.0
    */
   fetchOriginLinkData(): Promise<TappLinkData>;
   /**
    * Listen for a deferred link. Native events are retained until a listener attaches.
+   * Register before start() on iOS and Android; web emits no native deferred links.
+   * Check data.error before routing. No Tapp-specific rejection codes; listener
+   * registration is managed by Capacitor. The resolved handle removes this listener.
+   * @example
+   * const listener = await Tapp.addListener('deferredLinkReceived', (data) => {
+   *   if (!data.error) route(data);
+   * });
    * @since 0.1.0
    */
   addListener(
@@ -437,6 +478,12 @@ export interface TappPlugin {
   ): Promise<PluginListenerHandle>;
   /**
    * Listen for URL resolution failures.
+   * On iOS and Android, events are retained until a listener attaches; register
+   * before start(). Web emits no native resolution-failure events.
+   * No Tapp-specific rejection codes; listener registration is managed by Capacitor.
+   * The resolved handle removes this listener.
+   * @example
+   * const listener = await Tapp.addListener('didFailResolvingURL', () => reportFailure());
    * @since 0.1.0
    */
   addListener(
@@ -445,6 +492,10 @@ export interface TappPlugin {
   ): Promise<PluginListenerHandle>;
   /**
    * Remove all plugin event listeners.
+   * Available on iOS, Android, and web without calling start() first.
+   * Resolves when Capacitor removes the listeners; no Tapp-specific rejection codes.
+   * @example
+   * await Tapp.removeAllListeners();
    * @since 0.1.0
    */
   removeAllListeners(): Promise<void>;

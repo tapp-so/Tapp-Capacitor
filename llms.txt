@@ -1,0 +1,14 @@
+# Tapp Capacitor SDK
+
+> Tapp Capacitor SDK wraps the native Tapp iOS and Android SDKs for deep linking and attribution, including device match. Its TypeScript API starts Tapp, generates tracked links, sends events, and resolves incoming and deferred install links in Capacitor apps.
+
+The package is `tapp-capacitor-sdk` version `0.1.0-alpha.2` (alpha pre-release).
+Choose exactly one of `tapp-capacitor-sdk` or `tapp-adjust-capacitor-sdk`, never both.
+Use “device match” and “SHA-256 certificate hash”. Never hard-code or log tokens.
+
+## Documentation
+
+- [Agent instructions](https://raw.githubusercontent.com/tapp-so/Tapp-Capacitor/main/AGENTS.md): Integration and contributor rules.
+- [README](https://raw.githubusercontent.com/tapp-so/Tapp-Capacitor/main/README.md): Installation and API guide.
+- [Errors](https://raw.githubusercontent.com/tapp-so/Tapp-Capacitor/main/docs/errors.md): Error causes and fixes.
+- [Changelog](https://raw.githubusercontent.com/tapp-so/Tapp-Capacitor/main/CHANGELOG.md): Release history.
